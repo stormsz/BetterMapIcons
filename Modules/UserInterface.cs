@@ -30,6 +30,7 @@ namespace MapIcons
 
     public sealed class UserInterface : PluginModule {
         public UserInterface(Plugin plugin) : base(plugin) { }
+        private int MaxIconSize = 80;
 
         public bool ShowIconPicker { get; set; } = false;
         public string SelectedIconButton { get; set; } = "";
@@ -633,7 +634,7 @@ namespace MapIcons
                 DT.ColorSelect.Draw($"ICP{i}","Icon Color", ref setting.Tint); ImGui.SameLine();
                 DT.ColorSelect.Draw($"IHCP{i}","Icon Hidden Color", ref setting.HiddenTint); ImGui.SameLine();
                 DT.IconSelect.Draw($"CustomPathIcon{i}", "Custom Path Icon", ref setting.Index, Plugin.IconAtlas, new DT.IconSelect.Options { IconColor = setting.Tint.ToImgui() }); ImGui.SameLine();
-                IconSizeSliderInt($"##CustomPath{i}", ref setting.Size, 0, 32); ImGui.SameLine();
+                IconSizeSliderInt($"##CustomPath{i}", ref setting.Size, 0, MaxIconSize); ImGui.SameLine();
                 DT.ImGUITools.Checkbox($"##CustomPathText{i}", "Draw Text", ref setting.DrawName); ImGui.SameLine();
                 DT.ImGUITools.Checkbox($"##CustomPathAlive{i}", "Check if Entity is Alive", ref setting.Check_IsAlive); ImGui.SameLine();
                 DT.ImGUITools.Checkbox($"##CustomPathOpened{i}", "Check if Entity is Opened", ref setting.Check_IsOpened); ImGui.SameLine();
@@ -667,7 +668,7 @@ namespace MapIcons
                                 DT.ColorSelect.Draw($"IC{treeIcon.Name}", $"Icon Color", ref iconSettings.Tint); ImGui.SameLine();
                                 DT.ColorSelect.Draw($"IHC{treeIcon.Name}", $"Icon Hidden Color", ref iconSettings.HiddenTint); ImGui.SameLine();
                                 DT.IconSelect.Draw($"Icon{treeIcon.Name}", $"Icon", ref iconSettings.Index, Plugin.IconAtlas, new DT.IconSelect.Options { IconColor = iconSettings.Tint.ToImgui() }); ImGui.SameLine();
-                                IconSizeSliderInt($"Icons Slider {treeIcon.Name}", ref iconSettings.Size, 0, 32); ImGui.SameLine();
+                                IconSizeSliderInt($"Icons Slider {treeIcon.Name}", ref iconSettings.Size, 0, MaxIconSize); ImGui.SameLine();
                                 ImGui.Text($"{treeIcon.Name}");
                                 break;
                             case TreeIconConfigs.IngameIcon:
@@ -681,7 +682,7 @@ namespace MapIcons
                                 DT.ColorSelect.Draw($"IHC{treeIcon.Name}", $"Icon Hidden Color", ref iconSettings.HiddenTint); ImGui.SameLine();
                                 DT.IconSelect.Draw($"Icon{treeIcon.Name}", $"Icon", ref iconSettings.Index, Plugin.IconAtlas, new DT.IconSelect.Options { IconColor = iconSettings.Tint.ToImgui() }); ImGui.SameLine();
                                 DT.ImGUITools.Checkbox($"##Animate_{treeIcon.Name}", $"Animate Icon Health, uses 8 sequential icons to visualise health", ref iconSettings.AnimateLife); ImGui.SameLine();
-                                IconSizeSliderInt($"Icons Slider {treeIcon.Name}", ref iconSettings.Size, 0, 32); ImGui.SameLine();
+                                IconSizeSliderInt($"Icons Slider {treeIcon.Name}", ref iconSettings.Size, 0, MaxIconSize); ImGui.SameLine();
                                 ImGui.Text(treeIcon.Name);
                                 break;
                             case TreeIconConfigs.Friendly:
@@ -690,7 +691,7 @@ namespace MapIcons
                                 DT.ColorSelect.Draw($"IHC{treeIcon.Name}", $"Icon Hidden Color", ref iconSettings.HiddenTint); ImGui.SameLine();
                                 DT.IconSelect.Draw($"Icon{treeIcon.Name}", $"Icon", ref iconSettings.Index, Plugin.IconAtlas, new DT.IconSelect.Options { IconColor = iconSettings.Tint.ToImgui() }); ImGui.SameLine();
                                 DT.ImGUITools.Checkbox($"##Animate_{treeIcon.Name}", $"Animate Icon Health, uses 8 sequential icons to visualise health", ref iconSettings.AnimateLife); ImGui.SameLine();
-                                IconSizeSliderInt($"Icons Slider {treeIcon.Name}", ref iconSettings.Size, 0, 32); ImGui.SameLine();
+                                IconSizeSliderInt($"Icons Slider {treeIcon.Name}", ref iconSettings.Size, 0, MaxIconSize); ImGui.SameLine();
                                 DT.ImGUITools.Checkbox($"##checkboxname{treeIcon.Name}", $"Show Name", ref iconSettings.DrawName); ImGui.SameLine();
                                 DT.ImGUITools.Checkbox($"##checkboxhealth{treeIcon.Name}", $"Show Health", ref iconSettings.DrawHealth); ImGui.SameLine();
                                 ImGui.Text(treeIcon.Name);
@@ -699,7 +700,7 @@ namespace MapIcons
                                 DT.ImGUITools.Checkbox($"##Draw_{treeIcon.Name}", $"Draw {treeIcon.Name}", ref iconSettings.Draw); ImGui.SameLine();
                                 DT.ColorSelect.Draw($"IC{treeIcon.Name}",$"Icon Color", ref iconSettings.Tint); ImGui.SameLine();
                                 DT.IconSelect.Draw($"Icon{treeIcon.Name}", $"Icon", ref iconSettings.Index, Plugin.IconAtlas, new DT.IconSelect.Options { IconColor = iconSettings.Tint.ToImgui() }); ImGui.SameLine();
-                                IconSizeSliderInt($"Icons Slider {treeIcon.Name}", ref iconSettings.Size, 0, 32); ImGui.SameLine();
+                                IconSizeSliderInt($"Icons Slider {treeIcon.Name}", ref iconSettings.Size, 0, MaxIconSize); ImGui.SameLine();
                                 ImGui.Text(treeIcon.Name);
                                 break;
                             case TreeIconConfigs.Custom:
