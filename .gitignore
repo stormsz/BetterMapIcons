@@ -1,0 +1,22 @@
+## Build output
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+## NuGet
+packages/
+*.nupkg
+
+## OS
+Thumbs.db
+.DS_Store
+
+## Compiled output
+*.dll
+*.exe
+*.pdb
+
+## Windows reserved device name
+nul
