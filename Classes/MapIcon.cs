@@ -5,7 +5,7 @@ using System.Numerics;
 using System.Reflection.Metadata.Ecma335;
 using RectangleF = SharpDX.RectangleF;
 
-namespace MapIcons;
+namespace BetterMapIcons;
 
 public class MapIcon
 {

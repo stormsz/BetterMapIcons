@@ -5,14 +5,14 @@ using SixLabors.ImageSharp.Processing;
 using ImageConfiguration = SixLabors.ImageSharp.Configuration;
 using SVector2 = System.Numerics.Vector2;
 
-namespace MapIcons;
+namespace BetterMapIcons;
 
 // Builds a texture of the whole area layout from the game's pathfinding grid (the same data the Radar
 // plugin uses), so IconRenderer can draw the entire map under the icons, explored or not.
 public sealed class MapTerrain : PluginModule {
     public MapTerrain(Plugin plugin) : base(plugin) { }
 
-    public const string TextureName = "MapIcons_Terrain";
+    public const string TextureName = "BetterMapIcons_Terrain";
     private const float GridToWorld = PoeMapExtension.TileToWorldConversion / (float)PoeMapExtension.TileToGridConversion;
 
     private const byte Unknown = 0, Walkable = 1, Blocked = 2;

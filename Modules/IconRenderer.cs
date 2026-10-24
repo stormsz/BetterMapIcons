@@ -8,7 +8,7 @@ using System.Drawing.Text;
 using System.Security.Cryptography.X509Certificates;
 using SVector2 = System.Numerics.Vector2;
 
-namespace MapIcons {
+namespace BetterMapIcons {
 
     public sealed class IconRenderer : PluginModule
     {

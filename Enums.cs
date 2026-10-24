@@ -1,4 +1,4 @@
-﻿namespace MapIcons;
+﻿namespace BetterMapIcons;
 
 public enum MapIconTypes {
     Unset,

@@ -1,16 +1,16 @@
 <#
 .SYNOPSIS
-    Deploys MapIcons into the newest ExileApi-Compiled-<version> HUD.
+    Deploys BetterMapIcons into the newest ExileApi-Compiled-<version> HUD.
 
 .DESCRIPTION
     The newest HUD is found by scanning -HudRoot for ExileApi-Compiled-<version> folders that
     contain ExileCore.dll, comparing versions numerically (so 329.19 beats 329.9).
 
       .\deploy.ps1           Build Release against that HUD's ExileCore.dll and copy the plugin DLL
-                             to <HUD>\Plugins\Compiled\MapIcons - the same thing
+                             to <HUD>\Plugins\Compiled\BetterMapIcons - the same thing
                              players install from the release zip.
 
-      .\deploy.ps1 -Source   Copy the project source to <HUD>\Plugins\Source\MapIcons
+      .\deploy.ps1 -Source   Copy the project source to <HUD>\Plugins\Source\BetterMapIcons
                              and compile it there, the same way the HUD does, to check it builds on
                              that ExileApi version.
 
@@ -46,7 +46,7 @@ trap {
     exit 1
 }
 
-$PluginName = 'MapIcons'
+$PluginName = 'BetterMapIcons'
 $ProjectDir = $PSScriptRoot
 $MarkerName = '.deployed-by-deploy-ps1'
 
@@ -120,11 +120,13 @@ function Show-OtherCopyWarning([string]$hud) {
     if (Test-Path $otherPath) {
         Write-Warning "There is also a copy in Plugins\$other ($otherPath). Remove it if you only want the $(if ($Source) { 'Source' } else { 'Compiled' }) one loaded."
     }
-    # Copies installed from GitHub zips (e.g. MapIcons_ExileAPI-master) would load a second MapIcons.
+    # The original MapIcons (GitHub zips like MapIcons_ExileAPI-master, or this plugin before its rename)
+    # draws the same icons, so both loading at once doubles everything.
     foreach ($kind in 'Source', 'Compiled') {
-        Get-ChildItem (Join-Path $hud "Plugins\$kind") -Directory -Filter 'MapIcons_ExileAPI*' -ErrorAction SilentlyContinue | ForEach-Object {
-            Write-Warning "Another MapIcons install is at $($_.FullName). Remove it so only this one loads."
-        }
+        Get-ChildItem (Join-Path $hud "Plugins\$kind") -Directory -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -eq 'MapIcons' -or $_.Name -like 'MapIcons_ExileAPI*' } | ForEach-Object {
+                Write-Warning "An older MapIcons install is at $($_.FullName). Remove it so only $PluginName loads."
+            }
     }
 }
 

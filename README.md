@@ -1,6 +1,6 @@
-# MapIcons
+# BetterMapIcons
 
-ExileAPI plugin that draws configurable icons for monsters, chests, league mechanics, NPCs and the
+A continuation of diesal's MapIcons: an ExileAPI plugin that draws configurable icons for monsters, chests, league mechanics, NPCs and the
 game's own minimap icons on the minimap and large map, plus an overlay of the whole area layout.
 
 ## Features
@@ -17,14 +17,15 @@ game's own minimap icons on the minimap and large map, plus an overlay of the wh
 Requires ExileAPI built on .NET 10 (329.x).
 
 ```powershell
-.\deploy.ps1            # build Release and copy MapIcons.dll + Media to <HUD>\Plugins\Compiled\MapIcons
-.\deploy.ps1 -Source    # copy the source to <HUD>\Plugins\Source\MapIcons and compile-check it there
+.\deploy.ps1            # build Release and copy BetterMapIcons.dll + Media to <HUD>\Plugins\Compiled\BetterMapIcons
+.\deploy.ps1 -Source    # copy the source to <HUD>\Plugins\Source\BetterMapIcons and compile-check it there
 .\deploy.ps1 -DryRun    # show what would happen
 ```
 
 The newest `ExileApi-Compiled-<version>` under `D:\bin\POE\ExileApi` is used; pass `-HudRoot` or
-`-HudPath` to change that. Remove other MapIcons installs (e.g. `MapIcons_ExileAPI-master`) so only
-one loads.
+`-HudPath` to change that. Remove any MapIcons install (e.g. `MapIcons_ExileAPI-master`) so the icons
+are not drawn twice. Settings are stored as `config\global\BetterMapIcons_settings.json`; copy an old
+`MapIcons_settings.json` to that name to keep your MapIcons settings.
 
 To build by hand: `dotnet build -p:exapiPackage=<HUD folder>`.
 

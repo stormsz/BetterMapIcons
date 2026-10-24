@@ -8,7 +8,7 @@ using SharpDX;
 using System.Drawing;
 using DBugger = DieselTools_ExileAPI.DBugger;
 
-namespace MapIcons;
+namespace BetterMapIcons;
 
 
 

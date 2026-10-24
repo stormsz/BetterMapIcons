@@ -7,13 +7,13 @@ using DT = DieselTools_ExileAPI;
 using DBugger = DieselTools_ExileAPI.DBugger;
 using DieselTools_ExileAPI;
 
-namespace MapIcons;
+namespace BetterMapIcons;
 
 public class Plugin : BaseSettingsPlugin<Settings>
 {
     //--| Properties |---------------------------------------------------------------------------------------------------
     private DT.IconAtlas _iconAtlas;
-    public DT.IconAtlas IconAtlas => _iconAtlas ??= new(Graphics, "Diesel_MapIcons", Path.Combine(DirectoryFullName, "Media", "MapIcons.png"), new Vector2(32, 32));
+    public DT.IconAtlas IconAtlas => _iconAtlas ??= new(Graphics, "BetterMapIcons_Atlas", Path.Combine(DirectoryFullName, "Media", "MapIcons.png"), new Vector2(32, 32));
     
     private IconBuilder _iconBuilder;       
     public IconBuilder IconBuilder => _iconBuilder ??= new IconBuilder(this);
@@ -69,7 +69,7 @@ public class Plugin : BaseSettingsPlugin<Settings>
         DBugger.Settings = Settings.DBuggerSettings;
         DBugger.ToolbarOptions = new DT.FloatingToolbar.Options {
             Tools = new List<DT.FloatingToolbar.Tool>{
-                    new DT.FloatingToolbar.Label { Text = "MapIcons DBugger" },
+                    new DT.FloatingToolbar.Label { Text = "BetterMapIcons DBugger" },
                     new DT.FloatingToolbar.Button {
                         Label = "LOG",
                         SetChecked = (bool state) => { Settings.DBuggerSettings.ShowLog = state; },

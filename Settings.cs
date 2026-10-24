@@ -4,7 +4,7 @@ using ExileCore.Shared.Interfaces;
 using SharpDX;
 using DieselTools_ExileAPI;
 
-namespace MapIcons;
+namespace BetterMapIcons;
 
 public class MapIconSettings {
 

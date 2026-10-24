@@ -5,7 +5,7 @@ using DT = DieselTools_ExileAPI;
 using SVector2 = System.Numerics.Vector2;
 using SVector4 = System.Numerics.Vector4;
 
-namespace MapIcons
+namespace BetterMapIcons
 {
 
 
