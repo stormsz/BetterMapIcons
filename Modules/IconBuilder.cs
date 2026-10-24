@@ -70,6 +70,8 @@ public sealed class IconBuilder : PluginModule {
         "Ainsley Varrich",
         "Sevet Tetherein"
     };
+    private const string AllflameChestPath = "Metadata/Chests/LeagueDeepwater/";
+
     private List<string> UserSkippedEntityPaths { get; set; }
 
     private int RunCounter { get; set; }
@@ -181,9 +183,8 @@ public sealed class IconBuilder : PluginModule {
         icon.Show = () => !entity.IsOpened;
 
         // Allflame chests, checked before breakables so they never fall into that hidden-by-default group
-        const string allflamePath = "Metadata/Chests/LeagueDeepwater/";
-        if (entity.Path.StartsWith(allflamePath, StringComparison.Ordinal)) {
-            var name = entity.Path.Substring(allflamePath.Length);
+        if (entity.Path.StartsWith(AllflameChestPath, StringComparison.Ordinal)) {
+            var name = entity.Path.Substring(AllflameChestPath.Length);
             if (name.StartsWith("GoldTreasureChest", StringComparison.Ordinal)) icon.Type = MapIconTypes.GoldPile;
             else if (name.StartsWith("BottledItemChest", StringComparison.Ordinal)) icon.Type = MapIconTypes.AllflameBottle;
             else if (name.StartsWith("ClamTreasureChest", StringComparison.Ordinal)) icon.Type = MapIconTypes.AllflameClam;
@@ -593,8 +594,11 @@ public sealed class IconBuilder : PluginModule {
         // SKIP entity type terrain 
         if (entity.Type == EntityType.Terrain) return null; 
 
+        // Allflame chests have their own types; some (Sunken Loot) also carry a game minimap icon, which
+        // would otherwise turn them into a Ranged ingame icon that is not drawn while in range
+        if (entity.Type == EntityType.Chest && entity.Path.StartsWith(AllflameChestPath, StringComparison.Ordinal)) return CreateIcon_Chest(entity);
         // Ingame Icon
-        if (entity.HasComponent<MinimapIcon>() && !entity.GetComponent<MinimapIcon>().IsHide) return CreateIcon_Ingame(entity);
+        if (entity.HasComponent<MinimapIcon>()&& !entity.GetComponent<MinimapIcon>().IsHide) return CreateIcon_Ingame(entity);
         // Delirium Icons
         if (entity.Path.StartsWith("Metadata/Monsters/LeagueAffliction/DoodadDaemons", StringComparison.Ordinal)) return CreateIcon_Delirium(entity);
         // Monster Icon
