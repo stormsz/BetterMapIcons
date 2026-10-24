@@ -29,6 +29,8 @@ public class Plugin : BaseSettingsPlugin<Settings>
 
     //--| Initialise |--------------------------------------------------------------------------------------------------
     public override bool Initialise() {
+        // HUD menu label only; the settings file stays keyed by the folder name (BetterMapIcons_settings.json)
+        Name = "Better Map Icons";
         CanUseMultiThreading = true;
         InitializeDBugger();
 
