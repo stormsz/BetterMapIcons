@@ -32,6 +32,7 @@ public class Plugin : BaseSettingsPlugin<Settings>
         CanUseMultiThreading = true;
         InitializeDBugger();
 
+        UserInterface.RegisterDefaultIconSettings();
         IconBuilder.Initialise();
         IconRenderer.Initialise();
 

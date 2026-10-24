@@ -453,7 +453,67 @@ namespace MapIcons
                     },
 
                 },
-                // Chest Icons 
+                // Allflame (Deepwater league)
+                new TreeCategory {
+                    Name = "Allflame",
+                    TreeIcons = new List<TreeIcon> {
+                        new TreeIcon {
+                            Name = "Gold Pile",
+                            MapIconType = MapIconTypes.GoldPile,
+                            Config = TreeIconConfigs.Chest,
+                            DefaultSettings = new MapIconSettings {
+                                Index = 361,
+                                Tint = new SharpDX.Color(255, 160, 0, 255),
+                            }
+                        },
+                        new TreeIcon {
+                            Name = "Bottled Item",
+                            MapIconType = MapIconTypes.AllflameBottle,
+                            Config = TreeIconConfigs.Chest,
+                            DefaultSettings = new MapIconSettings {
+                                Index = 241,
+                                Tint = new SharpDX.Color(255, 255, 255, 255),
+                            }
+                        },
+                        new TreeIcon {
+                            Name = "Clam Treasure",
+                            MapIconType = MapIconTypes.AllflameClam,
+                            Config = TreeIconConfigs.Chest,
+                            DefaultSettings = new MapIconSettings {
+                                Index = 361,
+                                Tint = new SharpDX.Color(255, 255, 255, 255),
+                            }
+                        },
+                        new TreeIcon {
+                            Name = "Currency Treasure",
+                            MapIconType = MapIconTypes.AllflameCurrency,
+                            Config = TreeIconConfigs.Chest,
+                            DefaultSettings = new MapIconSettings {
+                                Index = 361,
+                                Tint = new SharpDX.Color(255, 214, 0, 255),
+                            }
+                        },
+                        new TreeIcon {
+                            Name = "Allflame Embers",
+                            MapIconType = MapIconTypes.AllflameEmbers,
+                            Config = TreeIconConfigs.Chest,
+                            DefaultSettings = new MapIconSettings {
+                                Index = 361,
+                                Tint = new SharpDX.Color(255, 90, 0, 255),
+                            }
+                        },
+                        new TreeIcon {
+                            Name = "Other Allflame Chest",
+                            MapIconType = MapIconTypes.AllflameChest,
+                            Config = TreeIconConfigs.Chest,
+                            DefaultSettings = new MapIconSettings {
+                                Index = 361,
+                                Tint = new SharpDX.Color(255, 255, 255, 255),
+                            }
+                        },
+                    },
+                },
+                // Chest Icons
                 new TreeCategory {
                     Name = "Chest Icons",
                     TreeIcons = new List<TreeIcon> {
@@ -590,6 +650,14 @@ namespace MapIcons
                 },                  
             },
         };
+
+        // Icon settings used to be created only when their category was expanded in the menu, so icon types
+        // never looked at (including newly added ones) had no settings and were not drawn.
+        public void RegisterDefaultIconSettings() {
+            foreach (var treeIcon in UITree.Categories.SelectMany(category => category.TreeIcons)) {
+                Settings.SetDefaultIconSettings(treeIcon.MapIconType, treeIcon.DefaultSettings);
+            }
+        }
 
         //--| Helper methods |-----------------------------------------------------------------------------------------------
 

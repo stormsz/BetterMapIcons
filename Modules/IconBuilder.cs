@@ -180,6 +180,19 @@ public sealed class IconBuilder : PluginModule {
         icon.Name = icon.RenderName;
         icon.Show = () => !entity.IsOpened;
 
+        // Allflame chests, checked before breakables so they never fall into that hidden-by-default group
+        const string allflamePath = "Metadata/Chests/LeagueDeepwater/";
+        if (entity.Path.StartsWith(allflamePath, StringComparison.Ordinal)) {
+            var name = entity.Path.Substring(allflamePath.Length);
+            if (name.StartsWith("GoldTreasureChest", StringComparison.Ordinal)) icon.Type = MapIconTypes.GoldPile;
+            else if (name.StartsWith("BottledItemChest", StringComparison.Ordinal)) icon.Type = MapIconTypes.AllflameBottle;
+            else if (name.StartsWith("ClamTreasureChest", StringComparison.Ordinal)) icon.Type = MapIconTypes.AllflameClam;
+            else if (name.StartsWith("CurrencyTreasureChest", StringComparison.Ordinal)) icon.Type = MapIconTypes.AllflameCurrency;
+            else if (name.StartsWith("DeepwaterChestAllflameEmbers", StringComparison.Ordinal)) icon.Type = MapIconTypes.AllflameEmbers;
+            else icon.Type = MapIconTypes.AllflameChest;
+            DebugChestIcon(icon);
+            return icon;
+        }
         // Breakables
         var chest = entity.GetComponent<Chest>();
         if (chest?.Stompable == true || chest?.OpenOnDamage == true) {

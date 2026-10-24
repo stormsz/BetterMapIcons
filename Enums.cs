@@ -56,6 +56,13 @@ public enum MapIconTypes {
     SanctumChest,
     PirateChest,
     AbyssChest,
+    // Allflame (Deepwater league) chests
+    GoldPile,
+    AllflameBottle,
+    AllflameClam,
+    AllflameCurrency,
+    AllflameEmbers,
+    AllflameChest,
     ChestWhite,
     ChestMagic,
     ChestRare,

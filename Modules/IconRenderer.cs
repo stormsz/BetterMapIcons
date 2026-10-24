@@ -88,7 +88,8 @@ namespace MapIcons {
                     if (mapIcon.Settings == null) continue;
                 }
 
-                if (mapIcon.Settings.Check_IsAlive && !mapIcon.Entity.IsAlive) continue; 
+                // Only things with Life can die: chests always report IsAlive false and would never be drawn
+                if (mapIcon.Settings.Check_IsAlive && mapIcon.Entity.HasComponent<Life>() && !mapIcon.Entity.IsAlive) continue;
                 if (mapIcon.Settings.Check_IsOpened && mapIcon.Entity.IsOpened) continue;
 
                 var iconFileName = Plugin.IconAtlas.Name;
