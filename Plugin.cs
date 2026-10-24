@@ -13,13 +13,16 @@ public class Plugin : BaseSettingsPlugin<Settings>
 {
     //--| Properties |---------------------------------------------------------------------------------------------------
     private DT.IconAtlas _iconAtlas;
-    public DT.IconAtlas IconAtlas => _iconAtlas ??= new(Graphics, "Diesel_MapIcons", Path.Combine(Path.GetDirectoryName(typeof(MapIcon).Assembly.Location), "media", "MapIcons.png"), new Vector2(32, 32));
+    public DT.IconAtlas IconAtlas => _iconAtlas ??= new(Graphics, "Diesel_MapIcons", Path.Combine(DirectoryFullName, "Media", "MapIcons.png"), new Vector2(32, 32));
     
     private IconBuilder _iconBuilder;       
     public IconBuilder IconBuilder => _iconBuilder ??= new IconBuilder(this);
 
     private IconRenderer _iconRenderer;
     private IconRenderer IconRenderer => _iconRenderer ??= new IconRenderer(this);
+
+    private MapTerrain _mapTerrain;
+    public MapTerrain MapTerrain => _mapTerrain ??= new MapTerrain(this);
 
     private UserInterface _userInterface;
     private UserInterface UserInterface => _userInterface ??= new UserInterface(this);
@@ -47,9 +50,15 @@ public class Plugin : BaseSettingsPlugin<Settings>
         return null;
     }
 
+    //--| Area Change |------------------------------------------------------------------------------------------------
+    public override void AreaChange(AreaInstance area) {
+        MapTerrain.AreaChange();
+    }
+
     //--| Render |-----------------------------------------------------------------------------------------------------
     public override void Render() {
-        IconRenderer.Render();  
+        MapTerrain.Render();
+        IconRenderer.Render();
         DBugger.Render();
     }
 

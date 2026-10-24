@@ -60,16 +60,19 @@ namespace MapIcons {
                 largeMapOpen = true;
                 mapScale = largeMapWindow.MapScale;
             }
-            // check game states 
-            if (largeMapOpen == null || !GameController.InGame || !Settings.DrawOnMinimap && largeMapOpen != true) return;
-            if (!Settings.DrawOverFullscreenPanels && ingameUi.FullscreenPanels.Any(x => x.IsVisible) || Settings.DrawOverLargePanels && ingameUi.LargePanels.Any(x => x.IsVisible)) return;
+            // check game states
+            if (largeMapOpen == null || !GameController.InGame) return;
+            if (!Settings.DrawOverFullscreenPanels && ingameUi.FullscreenPanels.Any(x => x.IsVisible) || !Settings.DrawOverLargePanels && ingameUi.LargePanels.Any(x => x.IsVisible)) return;
             if (largeMapWindow == null) return;
 
             // Get player position and height
             var playerRender = GameController?.Player?.GetComponent<Render>();
             if (playerRender == null) return;
-            var playerPos = playerRender.PosNum.WorldToGrid();
-            var playerHeight = -playerRender.UnclampedHeight;
+            var view = new MapView(mapCenter, mapScale, playerRender.PosNum.WorldToGrid(), -playerRender.UnclampedHeight);
+
+            DrawTerrain(view, largeMapOpen.Value, ingameUi);
+
+            if (!Settings.DrawOnMinimap && largeMapOpen != true) return;
             // Get the cached icons list
             if (RenderedMapIconsCache == null) return;
             var renderedMapIcons = RenderedMapIconsCache.Value;
@@ -95,9 +98,7 @@ namespace MapIcons {
 
                 // get icon position
                 var iconGridPos = mapIcon.GridPosition();
-                var iconDelta = iconGridPos - playerPos;
-                var iconDeltaZ = (playerHeight + GameController.IngameState.Data.GetTerrainHeightAt(iconGridPos)) * PoeMapExtension.WorldToGridConversion;
-                var iconPosition = mapCenter + (mapScale * SVector2.Multiply(new SVector2(iconDelta.X - iconDelta.Y, iconDeltaZ - (iconDelta.X + iconDelta.Y)), new SVector2(CameraAngleCos, CameraAngleSin)));
+                var iconPosition = view.GridToScreen(iconGridPos, GameController.IngameState.Data.GetTerrainHeightAt(iconGridPos));
 
                 // icon rendering
                 if (mapIcon.Renderer == MapIconRenderers.IngameIcon) {
@@ -201,6 +202,51 @@ namespace MapIcons {
                         break;
                 }
             }
+        }
+
+        // Projects grid positions onto the visible map; built once per frame from the player's position.
+        private readonly struct MapView {
+            private readonly SVector2 _center;
+            private readonly float _scale;
+            private readonly SVector2 _playerGridPos;
+            private readonly float _playerHeight;
+
+            public MapView(SVector2 center, float scale, SVector2 playerGridPos, float playerHeight) {
+                _center = center;
+                _scale = scale;
+                _playerGridPos = playerGridPos;
+                _playerHeight = playerHeight;
+            }
+
+            // terrainHeight is the world height at gridPos; pass 0 for the terrain texture, which has heights baked in.
+            public SVector2 GridToScreen(SVector2 gridPos, float terrainHeight) {
+                var delta = gridPos - _playerGridPos;
+                var deltaZ = (_playerHeight + terrainHeight) * PoeMapExtension.WorldToGridConversion;
+                return _center + _scale * SVector2.Multiply(new SVector2(delta.X - delta.Y, deltaZ - (delta.X + delta.Y)), new SVector2(CameraAngleCos, CameraAngleSin));
+            }
+        }
+
+        private void DrawTerrain(MapView view, bool largeMapOpen, IngameUIElements ingameUi) {
+            if (!Settings.DrawTerrain) return;
+            if (largeMapOpen ? !Settings.DrawTerrainOnLargeMap : !Settings.DrawTerrainOnMinimap) return;
+            if (Plugin.MapTerrain.AreaSize is not { } areaSize || !Graphics.HasImage(MapTerrain.TextureName)) return;
+
+            using var clip = largeMapOpen
+                ? Graphics.BeginRectClip(GetLargeMapClipRect(ingameUi))
+                : Graphics.MapSurfaceClip(VisibleSubMap.Any);
+            Graphics.DrawQuad(Graphics.GetTextureId(MapTerrain.TextureName),
+                view.GridToScreen(SVector2.Zero, 0),
+                view.GridToScreen(new SVector2(areaSize.X, 0), 0),
+                view.GridToScreen(areaSize, 0),
+                view.GridToScreen(new SVector2(0, areaSize.Y), 0));
+        }
+
+        // The large map spans the whole window; keep the terrain off the side panels the way the game does.
+        private SharpDX.RectangleF GetLargeMapClipRect(IngameUIElements ingameUi) {
+            var rect = GameController.Window.GetWindowRectangle() with { Location = SharpDX.Vector2.Zero };
+            if (ingameUi.OpenRightPanel.IsVisible) rect.Right = ingameUi.OpenRightPanel.GetClientRectCache.Left;
+            if (ingameUi.OpenLeftPanel.IsVisible) rect.Left = ingameUi.OpenLeftPanel.GetClientRectCache.Right;
+            return rect;
         }
 
         public SharpDX.RectangleF? GetIconPositionRect(int iconSize, SVector2 iconPosition, IngameUIElements inGameUI) {

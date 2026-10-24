@@ -37,6 +37,19 @@ public sealed class Settings : ISettings {
     public bool DrawOverLargePanels = false;
     public bool DrawOverFullscreenPanels = false;
 
+    // full map (terrain) overlay
+    public bool DrawTerrain = true;
+    public bool DrawTerrainOnMinimap = true;
+    public bool DrawTerrainOnLargeMap = true;
+    public Color TerrainOutlineColor = new Color(150, 150, 150, 150);
+    public bool TerrainFillWalkable = false;
+    public Color TerrainFillColor = new Color(255, 255, 255, 25);
+    public int TerrainOutlineWidth = 2;
+    public bool TerrainHeightAdjust = true;
+    public bool TerrainClearBlockades = true;
+    public int TerrainMaxTextureSize = 4096;
+    public bool TerrainSettingsOpen = true;
+
     public int IgnoredEntitiesHeight = 100;
     public bool DrawSettingsOpen = true;
     public bool IgnoredEntitesOpen = false;

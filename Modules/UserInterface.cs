@@ -649,6 +649,34 @@ namespace MapIcons
             if (ImGui.Button("Rebuild Icons")) Plugin.IconBuilder.RebuildIcons();
         }
         
+        private void DrawTerrainSettings() {
+            DT.ImGUITools.Checkbox("Draw Full Map", "Draw the layout of the whole area, including parts not explored yet", ref Settings.DrawTerrain);
+            DT.ImGUITools.Checkbox("On Minimap", "Draw the full map on the minimap", ref Settings.DrawTerrainOnMinimap); ImGui.SameLine();
+            DT.ImGUITools.Checkbox("On Large Map", "Draw the full map on the large map", ref Settings.DrawTerrainOnLargeMap);
+
+            DT.ColorSelect.Draw("TerrainOutline", "Outline Color", ref Settings.TerrainOutlineColor); ImGui.SameLine();
+            ImGui.Text("Outline"); ImGui.SameLine();
+            ImGui.PushItemWidth(100);
+            ImGui.SliderInt("Outline Width", ref Settings.TerrainOutlineWidth, 1, 6);
+            ImGui.PopItemWidth();
+
+            DT.ImGUITools.Checkbox("##TerrainFill", "Fill the walkable area", ref Settings.TerrainFillWalkable); ImGui.SameLine();
+            DT.ColorSelect.Draw("TerrainFill", "Fill Color", ref Settings.TerrainFillColor); ImGui.SameLine();
+            ImGui.Text("Fill Walkable Area");
+
+            DT.ImGUITools.Checkbox("Height Adjust", "Shift the layout by terrain height so it lines up with the game's map", ref Settings.TerrainHeightAdjust);
+            DT.ImGUITools.Checkbox("Clear Triggerable Blockades", "Show paths blocked by doors or blockades that can be opened", ref Settings.TerrainClearBlockades);
+            ImGui.PushItemWidth(100);
+            ImGui.SliderInt("Max Texture Size", ref Settings.TerrainMaxTextureSize, 256, 4096);
+            ImGui.PopItemWidth();
+            if (ImGui.IsItemHovered()) {
+                ImGui.BeginTooltip();
+                ImGui.Text("Larger areas are scaled down to this size; lower it to save memory");
+                ImGui.EndTooltip();
+            }
+            if (ImGui.Button("Rebuild Map")) Plugin.MapTerrain.AreaChange();
+        }
+
         //--| Draw UI |-----------------------------------------------------------------------------------------------
 
         private void DrawTree() {
@@ -745,6 +773,11 @@ namespace MapIcons
                 DT.ImGUITools.Checkbox("Draw cached Entities", "Draw entities that are cached but no longer in proximity", ref Settings.DrawCachedEntities);
                 DT.ImGUITools.Checkbox("Draw Over Large Panels", "Enable drawing over large panels", ref Settings.DrawOverLargePanels);
                 DT.ImGUITools.Checkbox("Draw Over Fullscreen Panels", "Enable drawing over fullscreen panels", ref Settings.DrawOverFullscreenPanels);
+                ImGui.Unindent();
+            }
+            if (DT.ImGUITools.CollapsingHeader("Full Map", ref Settings.TerrainSettingsOpen)) {
+                ImGui.Indent();
+                DrawTerrainSettings();
                 ImGui.Unindent();
             }
             if (DT.ImGUITools.CollapsingHeader("Ignored Entities", ref Settings.IgnoredEntitesOpen)) {
