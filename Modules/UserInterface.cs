@@ -708,9 +708,15 @@ namespace BetterMapIcons
                 DT.ImGUITools.Checkbox($"##CustomPathOpened{i}", "Check if Entity is Opened", ref setting.Check_IsOpened); ImGui.SameLine();
                 float inputTextWidth = ImGui.GetContentRegionAvail().X - ImGui.CalcTextSize("Remove").X - ImGui.GetStyle().ItemSpacing.X;
                 ImGui.SetNextItemWidth(inputTextWidth);
-                ImGui.InputText($"##Path{i}", ref setting.Path, 100); ImGui.SameLine();
+                ImGui.InputText($"##Path{i}", ref setting.Path, 100);
+                // entities already checked are not re-checked on their own, so apply the new path once editing ends
+                if (ImGui.IsItemDeactivatedAfterEdit()) Plugin.IconBuilder.RebuildIcons();
+                ImGui.SameLine();
                 ImGui.PopItemWidth();
-                if (ImGui.Button($"Remove##Path{i}")) Settings.RemoveCustomPathIcon(i);
+                if (ImGui.Button($"Remove##Path{i}")) {
+                    Settings.RemoveCustomPathIcon(i);
+                    Plugin.IconBuilder.RebuildIcons();
+                }
             }
 
             if (ImGui.Button("Add Icon")) Settings.NewCustomPathIcon(); ImGui.SameLine();
@@ -721,6 +727,7 @@ namespace BetterMapIcons
             DT.ImGUITools.Checkbox("Draw Full Map", "Draw the layout of the whole area, including parts not explored yet", ref Settings.DrawTerrain);
             DT.ImGUITools.Checkbox("On Minimap", "Draw the full map on the minimap", ref Settings.DrawTerrainOnMinimap); ImGui.SameLine();
             DT.ImGUITools.Checkbox("On Large Map", "Draw the full map on the large map", ref Settings.DrawTerrainOnLargeMap);
+            DT.ImGUITools.Checkbox("Skip Towns and Hideouts", "Do not draw the full map in towns and hideouts", ref Settings.TerrainSkipTownAndHideout);
 
             DT.ColorSelect.Draw("TerrainOutline", "Outline Color", ref Settings.TerrainOutlineColor); ImGui.SameLine();
             ImGui.Text("Outline"); ImGui.SameLine();

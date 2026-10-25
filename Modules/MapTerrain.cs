@@ -25,6 +25,7 @@ public sealed class MapTerrain : PluginModule {
     private uint _jobArea;
     private TerrainStyle _jobStyle;
     private TerrainResult _finished; // handed over from the worker, uploaded on the render thread
+    private long _retryAt; // set by a job that produced nothing, so the same area and style get another try
 
     private uint? _textureArea;
     private TerrainStyle _textureStyle;
@@ -43,8 +44,11 @@ public sealed class MapTerrain : PluginModule {
     public void Render() {
         if (!Settings.DrawTerrain) return;
 
+        if (!Settings.DrawTerrainOnMinimap && !Settings.DrawTerrainOnLargeMap) return;
+
         var area = GameController.Area.CurrentArea;
         if (area == null || !GameController.InGame) return;
+        if (Settings.TerrainSkipTownAndHideout && (area.IsTown || area.IsHideout)) return;
         var areaHash = area.Hash;
 
         var finished = Interlocked.Exchange(ref _finished, null);
@@ -60,7 +64,13 @@ public sealed class MapTerrain : PluginModule {
         }
 
         var style = CurrentStyle();
-        if (_textureArea == areaHash && _textureStyle == style) return;
+        if (_textureArea == areaHash && _textureStyle == style) {
+            // A texture built while the area was still loading can hold the previous area's grid.
+            var dimensions = GameController.IngameState.Data.AreaDimensions;
+            if (AreaSize == new SVector2(dimensions.X, dimensions.Y)) return;
+            _textureArea = null;
+            _job = null;
+        }
 
         // One job at a time: a job for another area is cancelled, a job for a stale style is left to
         // finish (cheaper than restarting on every frame of a color drag) and the next frame catches up.
@@ -68,9 +78,13 @@ public sealed class MapTerrain : PluginModule {
             if (_jobArea != areaHash) _jobCts.Cancel();
             return;
         }
-        // The last job already ran for this area and style: its result uploads next frame, or it failed
-        // and retrying every frame would not help.
-        if (_job != null && _jobArea == areaHash && _jobStyle == style) return;
+        // The last job already ran for this area and style: its result uploads next frame, or it produced
+        // nothing (area data not loaded yet, or an error) and is retried after a pause.
+        if (_job != null && _jobArea == areaHash && _jobStyle == style) {
+            var retryAt = Interlocked.Read(ref _retryAt);
+            if (retryAt == 0 || Environment.TickCount64 < retryAt) return;
+        }
+        Interlocked.Exchange(ref _retryAt, 0);
 
         // Not disposing the previous source: a cancelled job may still be unwinding with its token.
         _jobCts = new CancellationTokenSource();
@@ -81,10 +95,12 @@ public sealed class MapTerrain : PluginModule {
             try {
                 var result = Build(areaHash, style, token);
                 if (result != null) Interlocked.Exchange(ref _finished, result)?.Image.Dispose();
+                else Interlocked.Exchange(ref _retryAt, Environment.TickCount64 + 500);
             }
             catch (OperationCanceledException) { }
             catch (Exception e) {
                 DieselTools_ExileAPI.DBugger.Log($"Map terrain build failed: {e.Message}");
+                Interlocked.Exchange(ref _retryAt, Environment.TickCount64 + 5000);
             }
         }, token);
     }
@@ -106,7 +122,8 @@ public sealed class MapTerrain : PluginModule {
         var heights = style.HeightAdjust ? data.RawTerrainHeightData : null;
         int width = dimensions.X, height = dimensions.Y;
         if (pathfinding == null || width <= 0 || height <= 0) return null;
-        height = Math.Min(height, pathfinding.Length);
+        // While the area loads the grid can still be empty or belong to the previous area.
+        if (pathfinding.Length != height) return null;
         token.ThrowIfCancellationRequested();
 
         var options = new ParallelOptions { CancellationToken = token };

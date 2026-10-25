@@ -41,6 +41,7 @@ public sealed class Settings : ISettings {
     public bool DrawTerrain = true;
     public bool DrawTerrainOnMinimap = true;
     public bool DrawTerrainOnLargeMap = true;
+    public bool TerrainSkipTownAndHideout = true;
     public Color TerrainOutlineColor = new Color(150, 150, 150, 150);
     public bool TerrainFillWalkable = false;
     public Color TerrainFillColor = new Color(255, 255, 255, 25);

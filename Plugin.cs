@@ -56,6 +56,7 @@ public class Plugin : BaseSettingsPlugin<Settings>
     //--| Area Change |------------------------------------------------------------------------------------------------
     public override void AreaChange(AreaInstance area) {
         MapTerrain.AreaChange();
+        IconBuilder.AreaChange();
     }
 
     //--| Render |-----------------------------------------------------------------------------------------------------

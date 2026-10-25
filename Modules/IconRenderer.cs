@@ -108,7 +108,7 @@ namespace BetterMapIcons {
                     iconFileName = mapIcon.InGameTexture.FileName;
                     iconSize = (int)mapIcon.InGameTexture.Size;
                     iconUV = mapIcon.InGameTexture.UV;
-                    mapIcon.DrawRect = GetIconPositionRect(iconSize, iconPosition, ingameUi);
+                    mapIcon.DrawRect = GetIconPositionRect(iconSize, iconPosition, ingameUi, largeMapOpen.Value);
                     if (mapIcon.DrawRect == null) continue;
                     Graphics.DrawImage(iconFileName, mapIcon.DrawRect.Value, iconUV, iconColor);
                     if (mapIcon.Settings.DrawName) Graphics.DrawText(mapIcon.Name, iconPosition.Translate(0, 0), FontAlign.Center);
@@ -119,7 +119,7 @@ namespace BetterMapIcons {
                 if (!mapIcon.Settings.Draw) continue;
                 iconSize = mapIcon.Settings.Size;
                 iconUV = Plugin.IconAtlas.GetIconUV(mapIcon.Settings.Index);
-                mapIcon.DrawRect = GetIconPositionRect(iconSize, iconPosition, ingameUi);
+                mapIcon.DrawRect = GetIconPositionRect(iconSize, iconPosition, ingameUi, largeMapOpen.Value);
                 if (mapIcon.DrawRect == null) continue;
 
                 var lifeComponent = mapIcon.Entity?.GetComponent<Life>();
@@ -230,6 +230,7 @@ namespace BetterMapIcons {
         private void DrawTerrain(MapView view, bool largeMapOpen, IngameUIElements ingameUi) {
             if (!Settings.DrawTerrain) return;
             if (largeMapOpen ? !Settings.DrawTerrainOnLargeMap : !Settings.DrawTerrainOnMinimap) return;
+            if (Settings.TerrainSkipTownAndHideout && GameController.Area.CurrentArea is { } area && (area.IsTown || area.IsHideout)) return;
             if (Plugin.MapTerrain.AreaSize is not { } areaSize || !Graphics.HasImage(MapTerrain.TextureName)) return;
 
             using var clip = largeMapOpen
@@ -250,7 +251,7 @@ namespace BetterMapIcons {
             return rect;
         }
 
-        public SharpDX.RectangleF? GetIconPositionRect(int iconSize, SVector2 iconPosition, IngameUIElements inGameUI) {
+        public SharpDX.RectangleF? GetIconPositionRect(int iconSize, SVector2 iconPosition, IngameUIElements inGameUI, bool largeMapOpen) {
             float halfSize = iconSize / 2;
             float iconX = iconPosition.X - halfSize;
             float iconY = iconPosition.Y - halfSize;
@@ -261,7 +262,7 @@ namespace BetterMapIcons {
 
             var rect = new SharpDX.RectangleF(iconX, iconY, iconSize, iconSize);
 
-            if (inGameUI.Map.LargeMap.IsVisibleLocal == false && !inGameUI.Map.SmallMiniMap.GetClientRectCache.Contains(rect)) return null; 
+            if (!largeMapOpen && !inGameUI.Map.SmallMiniMap.GetClientRectCache.Contains(rect)) return null; 
 
             return rect;
         }

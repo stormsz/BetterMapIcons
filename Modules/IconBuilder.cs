@@ -77,16 +77,28 @@ public sealed class IconBuilder : PluginModule {
     private int RunCounter { get; set; }
     private int IconVersion;
 
+    // Entities whose type or path can never get an icon, so they are not re-checked every pass. Entity ids
+    // are only unique within an area instance, so this is cleared on area change and on rebuild.
+    private readonly HashSet<uint> _skippedEntityIds = new();
+    private int _skippedVersion;
+
     public void RebuildIcons() => IconVersion++;
     public void Initialise() => UpdateUserSkippedEntities();
+    public void AreaChange() => _skippedEntityIds.Clear();
     public void Tick()
     {
         RunCounter++;
-        if (RunCounter % Settings.RunEveryXTicks != 0) return;
+        if (RunCounter % Math.Max(1, Settings.RunEveryXTicks) != 0) return;
+
+        if (_skippedVersion != IconVersion) {
+            _skippedEntityIds.Clear();
+            _skippedVersion = IconVersion;
+        }
 
         foreach (var entity in GameController.Entities)
         {
             if (entity.GetHudComponent<MapIcon>() is { Version: var version, } && version >= IconVersion) continue;
+            if (_skippedEntityIds.Contains(entity.Id)) continue;
             MapIcon icon = CreateIcon(entity);
             if (icon == null) continue;
             icon.Version = IconVersion;
@@ -99,7 +111,7 @@ public sealed class IconBuilder : PluginModule {
         UserSkippedEntityPaths = new List<string>();
         var lines = Settings.ignoredPaths.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
         foreach (var line in lines) {
-            if (!string.IsNullOrWhiteSpace(line) && !line.StartsWith("#")) {
+            if (!string.IsNullOrWhiteSpace(line) && !line.StartsWith("#", StringComparison.Ordinal)) {
                 UserSkippedEntityPaths.Add(line.Trim());
             }
         }
@@ -185,6 +197,11 @@ public sealed class IconBuilder : PluginModule {
         // Allflame chests, checked before breakables so they never fall into that hidden-by-default group
         if (entity.Path.StartsWith(AllflameChestPath, StringComparison.Ordinal)) {
             var name = entity.Path.Substring(AllflameChestPath.Length);
+            // Coral Nest already has an icon the game draws itself
+            if (name.StartsWith("GiantCoralChest", StringComparison.Ordinal)) {
+                _skippedEntityIds.Add(entity.Id);
+                return null;
+            }
             if (name.StartsWith("GoldTreasureChest", StringComparison.Ordinal)) icon.Type = MapIconTypes.GoldPile;
             else if (name.StartsWith("BottledItemChest", StringComparison.Ordinal)) icon.Type = MapIconTypes.AllflameBottle;
             else if (name.StartsWith("ClamTreasureChest", StringComparison.Ordinal)) icon.Type = MapIconTypes.AllflameClam;
@@ -237,7 +254,7 @@ public sealed class IconBuilder : PluginModule {
                 icon.Type = MapIconTypes.AbyssChest;
                 break;
             // Strongboxes
-            //case string path when path.StartsWith("Metadata/Chests/StrongBoxes", StringComparison.Ordinal):
+            //case string path when path.StartsWith("Metadata/Chests/StrongBoxes"):
             //    CreateIcon_Strongbox(entity);
             //    break;
             // Default
@@ -339,7 +356,7 @@ public sealed class IconBuilder : PluginModule {
             if (!entity.HasComponent<Render>()) return null;
             var component = entity.GetComponent<Render>();
             icon.Type = MapIconTypes.NPC;
-            icon.Name = component?.Name.Split(',')[0];
+            icon.Name = component?.Name?.Split(',')[0];
             icon.Show = () => entity.IsValid;
         }
         // Totem
@@ -401,7 +418,7 @@ public sealed class IconBuilder : PluginModule {
             if (entity.Path.Contains("Legion")) {
                 var statDictionary = entity.Stats;
                 if (statDictionary == null) {
-                    icon.Show = () => entity.GetComponent<Life>().HPPercentage > 0.02;
+                    icon.Show = () => entity.GetComponent<Life>()?.HPPercentage > 0.02;
                 }
                 else if (statDictionary.Count == 0) {
                     statDictionary = entity.GetComponentFromMemory<Stats>()?.StatDictionary ?? statDictionary;
@@ -525,19 +542,19 @@ public sealed class IconBuilder : PluginModule {
         }
         else {
             switch (entity.Path) {
-                case string path when path.StartsWith("Metadata/MiscellaneousObjects/Waypoint"):
+                case string path when path.StartsWith("Metadata/MiscellaneousObjects/Waypoint", StringComparison.Ordinal):
                     icon.Type = MapIconTypes.Waypoint;
                     break;
-                case string path when path.StartsWith("Metadata/MiscellaneousObjects/Checkpoint"):
+                case string path when path.StartsWith("Metadata/MiscellaneousObjects/Checkpoint", StringComparison.Ordinal):
                     icon.Type = MapIconTypes.Checkpoint;
                     break;
-                case string path when path.StartsWith("Metadata/MiscellaneousObjects/AreaTransition"):
+                case string path when path.StartsWith("Metadata/MiscellaneousObjects/AreaTransition", StringComparison.Ordinal):
                     icon.Type = MapIconTypes.AreaTransition;
                     break;
-                case string path when path.StartsWith("Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable"):
+                case string path when path.StartsWith("Metadata/Terrain/Leagues/Ritual/RitualRuneInteractable", StringComparison.Ordinal):
                     icon.Type = MapIconTypes.Ritual;
                     break;
-                case string path when path.StartsWith("Metadata/MiscellaneousObjects/Breach/BreachObject"):
+                case string path when path.StartsWith("Metadata/MiscellaneousObjects/Breach/BreachObject", StringComparison.Ordinal):
                     icon.Type = MapIconTypes.Breach;
                     break;
                 default:
@@ -549,13 +566,34 @@ public sealed class IconBuilder : PluginModule {
         return icon;
     }
 
+    private bool IsAlwaysSkipped(Entity entity) {
+        switch (entity.Type) {
+            case EntityType.HideoutDecoration:
+            case EntityType.Effect:
+            case EntityType.Light:
+            case EntityType.ServerObject:
+            case EntityType.Daemon:
+            case EntityType.Error:
+            case EntityType.WorldItem:
+            case EntityType.MiscellaneousObjects:
+                return true;
+        }
+        if (entity.Path.StartsWith("Metadata/NPC/Hideout", StringComparison.Ordinal)) return true;
+        if (entity.Path.Contains("MapLightBot", StringComparison.Ordinal)) return true;
+        foreach (var path in UserSkippedEntityPaths) {
+            if (entity.Path.StartsWith(path, StringComparison.Ordinal)) return true;
+        }
+        return false;
+    }
+
     private MapIcon CreateIcon(Entity entity)
     {
         if (entity is null) return null;
         if (string.IsNullOrEmpty(entity.Path)) return null;
         if (!entity.IsValid) return null; // only adding the icon if its valid, to make sure components are available when creating icon... 
         // custom icon by path
-        var customPathIconSettings = Settings.CustomPathIcons.FirstOrDefault(setting => entity.Path.StartsWith(setting.Path, StringComparison.Ordinal));
+        // an empty path would match every entity, so it is ignored until the user types one
+        var customPathIconSettings = Settings.CustomPathIcons.FirstOrDefault(setting => !string.IsNullOrEmpty(setting.Path) && entity.Path.StartsWith(setting.Path, StringComparison.Ordinal));
         if (customPathIconSettings != null)
         {
             var icon = new MapIcon(entity);
@@ -566,25 +604,16 @@ public sealed class IconBuilder : PluginModule {
             DebugCustomIcon(icon);
             return icon;
         }
-        // SKIP entity types 
-        if (entity.Type == EntityType.HideoutDecoration) return null; 
-        if (entity.Type == EntityType.Effect) return null; 
-        if (entity.Type == EntityType.Light) return null; 
-        if (entity.Type == EntityType.ServerObject) return null; 
-        if (entity.Type == EntityType.Daemon) return null; 
-        if (entity.Type == EntityType.Error) return null;
-        if (entity.Type == EntityType.WorldItem) return null; 
-        if (entity.Type == EntityType.MiscellaneousObjects) return null; 
-        // SKIP entity paths 
-        if (entity.Path.StartsWith("Metadata/NPC/Hideout")) return null;
-        if (entity.Path.Contains("MapLightBot")) return null;
-        // userinterface skipped paths
-        if (UserSkippedEntityPaths.Any(path => entity.Path?.StartsWith(path) == true)) return null;
+        // SKIP entity types, paths and user skipped paths: these never change for an entity, so remember them
+        if (IsAlwaysSkipped(entity)) {
+            _skippedEntityIds.Add(entity.Id);
+            return null;
+        }
 
         // LabyrinthTrap Icons
         if (entity.Path.StartsWith("Metadata/Terrain/Labyrinth/Traps/", StringComparison.Ordinal)) return CreateIcon_LabyrinthTrap(entity);
         // Sanctum Mote
-        if (entity.Type == EntityType.Terrain && entity.Path.StartsWith("Metadata/Terrain/Leagues/Sanctum/Objects/SanctumMote")) {
+        if (entity.Type == EntityType.Terrain && entity.Path.StartsWith("Metadata/Terrain/Leagues/Sanctum/Objects/SanctumMote", StringComparison.Ordinal)) {
             var icon = new MapIcon(entity);
             icon.Type = MapIconTypes.SanctumMote;
             DebugMiscIcon(icon);
@@ -592,7 +621,10 @@ public sealed class IconBuilder : PluginModule {
         }
 
         // SKIP entity type terrain 
-        if (entity.Type == EntityType.Terrain) return null; 
+        if (entity.Type == EntityType.Terrain) {
+            _skippedEntityIds.Add(entity.Id);
+            return null;
+        }
 
         // Allflame chests have their own types; some (Sunken Loot) also carry a game minimap icon, which
         // would otherwise turn them into a Ranged ingame icon that is not drawn while in range
